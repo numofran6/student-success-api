@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { MousePointerClick, LogIn, MessageSquare, FolderOpen } from 'lucide-react';
 import { engagementApi } from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import { StudentPicker } from '@/components/StudentPicker';
@@ -53,10 +54,14 @@ export function DemoEngagementPage() {
       {student && data && (
         <>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="VLE clicks" value={String(data.summary.totalVleClicks)} />
-            <KpiCard label="Logins" value={String(data.summary.totalLoginCount)} />
-            <KpiCard label="Forum posts" value={String(data.summary.totalForumPosts)} />
-            <KpiCard label="Resource accesses" value={String(data.summary.totalResourceAccessCount)} />
+            <KpiCard label="VLE clicks" value={String(data.summary.totalVleClicks)} icon={MousePointerClick} />
+            <KpiCard label="Logins" value={String(data.summary.totalLoginCount)} icon={LogIn} />
+            <KpiCard label="Forum posts" value={String(data.summary.totalForumPosts)} icon={MessageSquare} />
+            <KpiCard
+              label="Resource accesses"
+              value={String(data.summary.totalResourceAccessCount)}
+              icon={FolderOpen}
+            />
           </dl>
 
           <div className="rounded-card border border-line bg-surface p-4 shadow-card">

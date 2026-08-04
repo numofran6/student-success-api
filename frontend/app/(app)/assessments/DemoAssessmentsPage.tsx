@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ClipboardList } from 'lucide-react';
 import { assessmentsApi } from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import { StudentPicker } from '@/components/StudentPicker';
@@ -56,6 +57,7 @@ export function DemoAssessmentsPage() {
             label="Weighted average score"
             value={formatPercent(data.summary.weightedAveragePercentage)}
             hint={`${data.summary.assessmentCount} assessments recorded`}
+            icon={ClipboardList}
           />
 
           <div className="rounded-card border border-line bg-surface p-4 shadow-card">

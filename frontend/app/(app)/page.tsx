@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Users, AlertTriangle, AlertCircle, BellRing } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
 import { getStudents, getAtRiskAssessments, getPendingEarlyWarnings } from '@/lib/server/api';
 import { KpiCard } from '@/components/KpiCard';
@@ -36,19 +37,26 @@ export default async function DashboardPage() {
       </header>
 
       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Students tracked" value={String(students.total)} />
+        <KpiCard label="Students tracked" value={String(students.total)} icon={Users} />
         <KpiCard
           label="High risk"
           value={String(high.length)}
           tone="high"
           hint="Latest classical + deep learning predictions"
+          icon={AlertTriangle}
         />
-        <KpiCard label="Medium risk" value={String(medium.length)} tone="medium" />
+        <KpiCard
+          label="Medium risk"
+          value={String(medium.length)}
+          tone="medium"
+          icon={AlertCircle}
+        />
         <KpiCard
           label="Pending early warnings"
           value={String(earlyWarnings.length)}
           tone={earlyWarnings.length > 0 ? 'high' : 'low'}
           hint="Recommendations awaiting action"
+          icon={BellRing}
         />
       </dl>
 

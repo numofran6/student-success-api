@@ -3,6 +3,7 @@ import { DEMO_MODE } from '@/lib/demo';
 import { getStudents, getRiskAssessmentsByStudent } from '@/lib/server/api';
 import { EmptyState } from '@/components/StatusStates';
 import { RiskCell } from '@/components/RiskCell';
+import { StudentAvatar } from '@/components/StudentAvatar';
 import { Button } from '@/components/ui/button';
 import { DemoStudentsPage } from './DemoStudentsPage';
 
@@ -131,8 +132,11 @@ export default async function StudentsPage({
             <tbody>
               {data.data.map((student, i) => (
                 <tr key={student.id} className="border-b border-line/60 last:border-0">
-                  <td className="px-4 py-2.5 font-mono text-xs text-ink">
-                    {student.externalId}
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <StudentAvatar externalId={student.externalId} size="sm" />
+                      <span className="font-mono text-xs text-ink">{student.externalId}</span>
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 text-ink-soft">{student.programme ?? '—'}</td>
                   <td className="px-4 py-2.5 font-mono text-xs text-ink-soft">

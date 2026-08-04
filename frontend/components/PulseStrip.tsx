@@ -1,3 +1,5 @@
+import { CHART_COLORS } from '@/lib/chart-colors';
+
 interface PulseStripProps {
   /** Risk scores in chronological order, each between 0 and 1. */
   scores: number[];
@@ -35,7 +37,12 @@ export function PulseStrip({
   });
 
   const last = scores[scores.length - 1];
-  const stroke = last >= 0.66 ? '#B5432F' : last >= 0.33 ? '#C08A2E' : '#5C7A4E';
+  const stroke =
+    last >= 0.66
+      ? CHART_COLORS.risk.high
+      : last >= 0.33
+        ? CHART_COLORS.risk.medium
+        : CHART_COLORS.risk.low;
 
   return (
     <svg

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Users, AlertTriangle, AlertCircle, BellRing } from 'lucide-react';
 import { studentsApi, riskAssessmentApi, recommendationsApi } from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import { KpiCard } from '@/components/KpiCard';
@@ -45,23 +46,26 @@ export function DemoDashboard() {
       {data && (
         <>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="Students tracked" value={String(data.students.total)} />
+            <KpiCard label="Students tracked" value={String(data.students.total)} icon={Users} />
             <KpiCard
               label="High risk"
               value={String(data.high.length)}
               tone="high"
               hint="Latest classical + deep learning predictions"
+              icon={AlertTriangle}
             />
             <KpiCard
               label="Medium risk"
               value={String(data.medium.length)}
               tone="medium"
+              icon={AlertCircle}
             />
             <KpiCard
               label="Pending early warnings"
               value={String(data.earlyWarnings.length)}
               tone={data.earlyWarnings.length > 0 ? 'high' : 'low'}
               hint="Recommendations awaiting action"
+              icon={BellRing}
             />
           </dl>
 

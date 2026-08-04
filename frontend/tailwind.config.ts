@@ -2,31 +2,32 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   darkMode: ['class'],
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        paper: '#F8FAFC',
+        paper: '#F7F6FB',
         surface: '#FFFFFF',
         ink: {
           DEFAULT: '#0F172A',
           soft: '#475569',
           faint: '#94A3B8',
         },
-        line: '#E2E8F0',
+        line: '#E4E0F0',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
-          dark: '#1D4ED8',
-          light: '#EFF6FF',
+          light: '#F1EBFC',
+          dark: '#5B21B6',
+          darker: '#3B0F80',
         },
         risk: {
-          high: '#DC2626',
-          'high-bg': '#FEF2F2',
-          medium: '#F59E0B',
-          'medium-bg': '#FFFBEB',
+          high: '#E11D48',
+          'high-bg': '#FFF1F3',
+          medium: '#D97706',
+          'medium-bg': '#FFF8EB',
           low: '#059669',
-          'low-bg': '#ECFDF5',
+          'low-bg': '#ECFDF6',
         },
         // shadcn/ui's standard token set — used by components/ui/*.
         // Values live in app/globals.css as CSS variables.
@@ -61,18 +62,19 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
       },
       fontFamily: {
-        display: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       borderRadius: {
-        card: '0.5rem',
+        card: '1rem',
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
       boxShadow: {
-        card: '0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06)',
+        card: '0 1px 2px rgba(76, 29, 149, 0.04), 0 8px 20px -6px rgba(76, 29, 149, 0.1)',
+        elevated: '0 4px 6px -2px rgba(76, 29, 149, 0.08), 0 16px 32px -8px rgba(76, 29, 149, 0.18)',
       },
       keyframes: {
         'accordion-down': {
@@ -94,4 +96,3 @@ const config: Config = {
 };
 
 export default config;
-

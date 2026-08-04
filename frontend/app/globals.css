@@ -4,8 +4,7 @@
 
 @layer base {
   :root {
-    /* Standard Tailwind palette: white/slate neutrals + blue-600 primary +
-       standard semantic colors (red/amber/emerald) for risk levels.
+    /* Violet primary + refined rose/amber/emerald risk semantics.
        Every component reads from these — nothing else needs to change. */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
@@ -16,26 +15,26 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 221 83% 53%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 258 45% 96%;
+    --secondary-foreground: 262 45% 24%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 258 30% 95%;
+    --muted-foreground: 258 15% 45%;
 
-    --accent: 214 100% 97%;
-    --accent-foreground: 224 76% 48%;
+    --accent: 262 70% 95%;
+    --accent-foreground: 262 60% 35%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 347 77% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 255 35% 91%;
+    --input: 255 35% 91%;
+    --ring: 262 83% 58%;
 
-    --radius: 0.5rem;
+    --radius: 0.85rem;
   }
   html {
     color-scheme: light;

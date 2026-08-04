@@ -1,3 +1,4 @@
+import { MousePointerClick, LogIn, MessageSquare, FolderOpen } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
 import { getStudents, getEngagementByStudent, getEngagementSummary } from '@/lib/server/api';
 import { StudentPickerLink } from '@/components/StudentPickerLink';
@@ -51,10 +52,14 @@ export default async function EngagementPage({
       {student && records && summary && (
         <>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="VLE clicks" value={String(summary.totalVleClicks)} />
-            <KpiCard label="Logins" value={String(summary.totalLoginCount)} />
-            <KpiCard label="Forum posts" value={String(summary.totalForumPosts)} />
-            <KpiCard label="Resource accesses" value={String(summary.totalResourceAccessCount)} />
+            <KpiCard label="VLE clicks" value={String(summary.totalVleClicks)} icon={MousePointerClick} />
+            <KpiCard label="Logins" value={String(summary.totalLoginCount)} icon={LogIn} />
+            <KpiCard label="Forum posts" value={String(summary.totalForumPosts)} icon={MessageSquare} />
+            <KpiCard
+              label="Resource accesses"
+              value={String(summary.totalResourceAccessCount)}
+              icon={FolderOpen}
+            />
           </dl>
 
           <div className="rounded-card border border-line bg-surface p-4 shadow-card">

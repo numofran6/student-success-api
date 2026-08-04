@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, CalendarCheck, ClipboardList, Activity } from 'lucide-react';
 import {
   studentsApi,
   attendanceApi,
@@ -14,6 +14,7 @@ import { useApi } from '@/lib/use-api';
 import { KpiCard } from '@/components/KpiCard';
 import { RiskBadge } from '@/components/RiskBadge';
 import { RecommendationCard } from '@/components/RecommendationCard';
+import { StudentAvatar } from '@/components/StudentAvatar';
 import { Button } from '@/components/ui/button';
 import { LoadingState, ErrorState, EmptyState } from '@/components/StatusStates';
 import { DataDisclosure } from '@/components/DataDisclosure';
@@ -160,18 +161,21 @@ export function DemoStudentDetail({ id }: { id: string }) {
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-wide text-ink-faint">
-            Student profile
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-ink">
-            {student.externalId}
-          </h1>
-          <p className="mt-1 font-sans text-sm text-ink-soft">
-            {student.programme ?? 'Programme not recorded'}
-            {student.cohortYear ? ` · Cohort ${student.cohortYear}` : ''} · Source:{' '}
-            {student.sourceDataset}
-          </p>
+        <div className="flex items-start gap-4">
+          <StudentAvatar externalId={student.externalId} size="lg" />
+          <div>
+            <p className="font-mono text-xs uppercase tracking-wide text-ink-faint">
+              Student profile
+            </p>
+            <h1 className="mt-1 font-display text-3xl font-bold text-ink">
+              {student.externalId}
+            </h1>
+            <p className="mt-1 font-sans text-sm text-ink-soft">
+              {student.programme ?? 'Programme not recorded'}
+              {student.cohortYear ? ` · Cohort ${student.cohortYear}` : ''} · Source:{' '}
+              {student.sourceDataset}
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button
@@ -195,16 +199,19 @@ export function DemoStudentDetail({ id }: { id: string }) {
           label="Attendance rate"
           value={formatPercent(attendanceSummary.averageAttendanceRate)}
           hint={`${attendanceSummary.totalSessionsAttended}/${attendanceSummary.totalSessionsScheduled} sessions`}
+          icon={CalendarCheck}
         />
         <KpiCard
           label="Weighted assessment score"
           value={formatPercent(assessmentSummary.weightedAveragePercentage)}
           hint={`${assessmentSummary.assessmentCount} assessments`}
+          icon={ClipboardList}
         />
         <KpiCard
           label="VLE engagement"
           value={String(engagementSummary.totalVleClicks)}
           hint={`${engagementSummary.totalLoginCount} logins · ${engagementSummary.totalForumPosts} forum posts`}
+          icon={Activity}
         />
         <div className="rounded-card border border-line bg-surface p-4 shadow-card">
           <dt className="font-sans text-xs font-medium uppercase tracking-wide text-ink-faint">

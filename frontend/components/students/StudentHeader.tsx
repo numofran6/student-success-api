@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/StatusStates';
+import { StudentAvatar } from '@/components/StudentAvatar';
 import { runRiskAssessmentAction, generateRecommendationsAction } from '@/app/actions';
 import type { Student } from '@/lib/types';
 
@@ -31,18 +32,21 @@ export function StudentHeader({ student }: { student: Student }) {
   return (
     <>
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-wide text-ink-faint">
-            Student profile
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-ink">
-            {student.externalId}
-          </h1>
-          <p className="mt-1 font-sans text-sm text-ink-soft">
-            {student.programme ?? 'Programme not recorded'}
-            {student.cohortYear ? ` · Cohort ${student.cohortYear}` : ''} · Source:{' '}
-            {student.sourceDataset}
-          </p>
+        <div className="flex items-start gap-4">
+          <StudentAvatar externalId={student.externalId} size="lg" />
+          <div>
+            <p className="font-mono text-xs uppercase tracking-wide text-ink-faint">
+              Student profile
+            </p>
+            <h1 className="mt-1 font-display text-3xl font-bold text-ink">
+              {student.externalId}
+            </h1>
+            <p className="mt-1 font-sans text-sm text-ink-soft">
+              {student.programme ?? 'Programme not recorded'}
+              {student.cohortYear ? ` · Cohort ${student.cohortYear}` : ''} · Source:{' '}
+              {student.sourceDataset}
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button

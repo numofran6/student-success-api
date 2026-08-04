@@ -1,3 +1,4 @@
+import { CalendarCheck } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
 import { getStudents, getAttendanceByStudent, getAttendanceSummary } from '@/lib/server/api';
 import { StudentPickerLink } from '@/components/StudentPickerLink';
@@ -54,6 +55,7 @@ export default async function AttendancePage({
             label="Average attendance rate"
             value={formatPercent(summary.averageAttendanceRate)}
             hint={`${summary.totalSessionsAttended} of ${summary.totalSessionsScheduled} sessions attended`}
+            icon={CalendarCheck}
           />
 
           <div className="rounded-card border border-line bg-surface p-4 shadow-card">

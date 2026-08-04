@@ -1,3 +1,4 @@
+import { ClipboardList } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
 import { getStudents, getAssessmentsByStudent, getAssessmentSummary } from '@/lib/server/api';
 import { StudentPickerLink } from '@/components/StudentPickerLink';
@@ -54,6 +55,7 @@ export default async function AssessmentsPage({
             label="Weighted average score"
             value={formatPercent(summary.weightedAveragePercentage)}
             hint={`${summary.assessmentCount} assessments recorded`}
+            icon={ClipboardList}
           />
 
           <div className="rounded-card border border-line bg-surface p-4 shadow-card">

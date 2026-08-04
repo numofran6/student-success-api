@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Activity,
   Bell,
+  GraduationCap,
 } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
 import { applyStoredCompactMode } from '@/lib/preferences';
@@ -44,26 +45,31 @@ export function AppShell({
     <div className="flex min-h-screen flex-col bg-paper text-ink lg:flex-row">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-card focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
       >
         Skip to main content
       </a>
 
       <nav
         aria-label="Primary"
-        className="w-full shrink-0 border-b border-line bg-surface px-4 py-4 lg:w-64 lg:border-b-0 lg:border-r lg:px-5 lg:py-6"
+        className="w-full shrink-0 bg-primary-darker px-4 py-4 lg:w-64 lg:px-5 lg:py-6"
       >
         <div className="flex items-center justify-between lg:block">
-          <div>
-            <p className="font-display text-lg font-semibold leading-tight text-ink">
-              Student Success
-            </p>
-            <p className="hidden font-mono text-xs uppercase tracking-wide text-ink-faint lg:block">
-              Analytics Ledger
-            </p>
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
+              <GraduationCap className="h-5 w-5 text-white" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="font-display text-base font-bold leading-tight text-white">
+                Student Success
+              </p>
+              <p className="hidden font-mono text-[0.65rem] uppercase tracking-wide text-white/50 lg:block">
+                Analytics Ledger
+              </p>
+            </div>
           </div>
           {DEMO_MODE && (
-            <span className="rounded-card border border-primary/30 bg-primary-light px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-primary-dark lg:hidden">
+            <span className="rounded-full bg-white/15 px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wide text-white lg:hidden">
               Demo
             </span>
           )}
@@ -82,10 +88,10 @@ export function AppShell({
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={clsx(
-                    'flex items-center gap-2.5 rounded-card px-3 py-2 font-sans text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+                    'flex items-center gap-2.5 rounded-full px-3.5 py-2 font-sans text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
                     active
-                      ? 'bg-primary text-white'
-                      : 'text-ink-soft hover:bg-primary-light hover:text-primary-dark',
+                      ? 'bg-white text-primary-darker shadow-sm'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white',
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -97,12 +103,12 @@ export function AppShell({
         </ul>
 
         {DEMO_MODE && (
-          <div className="mt-6 hidden border-t border-line pt-4 lg:block">
-            <div className="rounded-card border border-primary/30 bg-primary-light px-2.5 py-2">
-              <p className="font-mono text-[0.65rem] uppercase tracking-wide text-primary-dark">
+          <div className="mt-6 hidden border-t border-white/15 pt-4 lg:block">
+            <div className="rounded-card bg-white/10 px-2.5 py-2">
+              <p className="font-mono text-[0.65rem] uppercase tracking-wide text-white">
                 Demo mode
               </p>
-              <p className="mt-0.5 font-sans text-xs text-primary-dark">
+              <p className="mt-0.5 font-sans text-xs text-white/70">
                 Viewing sample data only
               </p>
             </div>

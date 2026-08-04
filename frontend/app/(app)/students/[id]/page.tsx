@@ -1,3 +1,4 @@
+import { CalendarCheck, ClipboardList, Activity } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
 import {
   getStudent,
@@ -93,16 +94,19 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           label="Attendance rate"
           value={formatPercent(attendanceSummary.averageAttendanceRate)}
           hint={`${attendanceSummary.totalSessionsAttended}/${attendanceSummary.totalSessionsScheduled} sessions`}
+          icon={CalendarCheck}
         />
         <KpiCard
           label="Weighted assessment score"
           value={formatPercent(assessmentSummary.weightedAveragePercentage)}
           hint={`${assessmentSummary.assessmentCount} assessments`}
+          icon={ClipboardList}
         />
         <KpiCard
           label="VLE engagement"
           value={String(engagementSummary.totalVleClicks)}
           hint={`${engagementSummary.totalLoginCount} logins · ${engagementSummary.totalForumPosts} forum posts`}
+          icon={Activity}
         />
         <div className="rounded-card border border-line bg-surface p-4 shadow-card">
           <dt className="font-sans text-xs font-medium uppercase tracking-wide text-ink-faint">

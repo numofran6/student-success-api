@@ -8,6 +8,7 @@ import { getStoredPageSize } from '@/lib/preferences';
 import { LoadingState, ErrorState, EmptyState } from '@/components/StatusStates';
 import { Pagination } from '@/components/Pagination';
 import { StudentRiskCell } from '@/components/StudentRiskCell';
+import { StudentAvatar } from '@/components/StudentAvatar';
 
 export function DemoStudentsPage() {
   const [programme, setProgramme] = useState('');
@@ -133,8 +134,11 @@ export function DemoStudentsPage() {
             <tbody>
               {data.data.map((student) => (
                 <tr key={student.id} className="border-b border-line/60 last:border-0">
-                  <td className="px-4 py-2.5 font-mono text-xs text-ink">
-                    {student.externalId}
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <StudentAvatar externalId={student.externalId} size="sm" />
+                      <span className="font-mono text-xs text-ink">{student.externalId}</span>
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 text-ink-soft">
                     {student.programme ?? '—'}

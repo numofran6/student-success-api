@@ -1,14 +1,21 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Montserrat } from 'next/font/google';
 import './globals.css';
 
-// Standard Tailwind-style look uses a single plain sans font throughout —
-// no separate serif "display" face. font-display and font-sans (in
-// tailwind.config.ts) both point at this same variable.
+// Body copy: Inter, clean and neutral.
 const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-sans',
+  display: 'swap',
+});
+
+// Headings and stat numbers: Montserrat, bold and geometric — gives the app
+// a distinct display voice instead of one font doing every job.
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['600', '700', '800'],
+  variable: '--font-display',
   display: 'swap',
 });
 
@@ -25,7 +32,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans`}>{children}</body>
+      <body className={`${inter.variable} ${montserrat.variable} font-sans`}>{children}</body>
     </html>
   );
 }
