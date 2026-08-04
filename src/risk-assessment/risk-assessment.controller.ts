@@ -7,14 +7,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { ApiKeyAuthGuard } from '../auth/api-key-auth.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RiskAssessmentService } from './risk-assessment.service';
 import { RiskLevel } from '../database/entities/risk-assessment.entity';
 
 @ApiTags('risk-assessment')
-@ApiSecurity('x-api-key')
-@UseGuards(ApiKeyAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller()
 export class RiskAssessmentController {
   constructor(private readonly riskAssessmentService: RiskAssessmentService) {}

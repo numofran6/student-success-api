@@ -17,7 +17,7 @@ Monorepo for the AI-Powered Student Success Analytics Platform (MSc project): a 
 npm install              # backend deps (root)
 npm run install:web       # frontend deps
 npm run install:analytics # Python venv + deps for the analytics service
-cp .env.example .env                                # fill in DATABASE_URL, pick an API_KEY
+cp .env.example .env                                # fill in DATABASE_URL, pick a JWT_SECRET
 cp frontend/.env.example frontend/.env.local         # no auth vars needed here
 docker run -d --name student-success-db \
   -e POSTGRES_PASSWORD=password -e POSTGRES_DB=student_success \
@@ -26,11 +26,11 @@ npm run seed              # populate the database with a synthetic cohort
 npm run dev                # runs backend on :4001, frontend on :3000, analytics on :8000
 ```
 
-Open `http://localhost:3000`. The frontend's `API_URL` already defaults to `http://localhost:4001`, matching this backend's `PORT=4001` — no port juggling needed. Log in with the `API_KEY` value from `.env`.
+Open `http://localhost:3000`. The frontend's `API_URL` already defaults to `http://localhost:4001`, matching this backend's `PORT=4001` — no port juggling needed. Click "Create one" on the sign-in screen to sign up (email, password, first/last name), then you're in.
 
-The frontend is server-rendered — the browser never talks to this backend directly. Every page fetches from the NestJS API server-side (Server Components) and mutations go through Server Actions, which set an httpOnly session cookie on login and attach it to backend requests. See `frontend/README.md`'s Architecture section for the full picture.
+The frontend is server-rendered — the browser never talks to this backend directly. Every page fetches from the NestJS API server-side (Server Components) and mutations go through Server Actions, which set an httpOnly session cookie (holding a JWT) on login/signup and attach it to backend requests. See `frontend/README.md`'s Architecture section for the full picture.
 
-Auth is a shared staff password (see below) — no external identity provider to configure. The default `DATABASE_URL` in `.env.example` points at the local Postgres container above; swap it for a Supabase connection string whenever you're ready to move off a local database.
+Auth is email/password — bcrypt-hashed passwords and JWT session tokens, stored in the same Postgres database as everything else (a `staff_users` table), no external identity provider to configure. The default `DATABASE_URL` in `.env.example` points at the local Postgres container above; swap it for a Supabase connection string whenever you're ready to move off a local database.
 
 Don't have a database wired up yet? Set `NEXT_PUBLIC_DEMO_MODE=true` in `frontend/.env.local` to run the UI standalone with in-memory sample data — see `frontend/README.md`.
 
@@ -45,13 +45,13 @@ To run one piece at a time: `npm run dev:api`, `npm run dev:web`, or `npm run de
 - `analytics-pipeline` – builds feature vectors from the above modules and calls the Python analytics service for classical ML and deep learning predictions.
 - `risk-assessment` – runs and stores risk predictions (classical ML + deep learning) per student, exposes at-risk queries.
 - `recommendations` – generates rule-based early-warning/guidance recommendations from risk assessments and tracks their status.
-- `auth` – shared staff password (`X-API-Key` header) guard, used to protect all routes.
+- `auth` – email/password signup and login (bcrypt password hashing, JWT session tokens), `JwtAuthGuard` protecting every other route, `GET /auth/me` for the current user's name/email.
 
 ## Setup
 
 ```bash
 npm install
-cp .env.example .env   # fill in DATABASE_URL, pick an API_KEY, analytics service URL
+cp .env.example .env   # fill in DATABASE_URL, pick a JWT_SECRET, analytics service URL
 npm run start:dev
 ```
 

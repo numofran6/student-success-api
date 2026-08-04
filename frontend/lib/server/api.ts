@@ -6,6 +6,7 @@ import type {
   AssessmentSummary,
   AttendanceRecord,
   AttendanceSummary,
+  CurrentUser,
   EngagementRecord,
   EngagementSummary,
   PaginatedStudents,
@@ -36,7 +37,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     ...(init.headers as Record<string, string> | undefined),
   };
   if (sessionKey) {
-    headers['x-api-key'] = sessionKey;
+    headers.Authorization = `Bearer ${sessionKey}`;
   }
 
   let response: Response;
@@ -55,8 +56,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     if (response.status === 401) {
-      // Stale or invalid session cookie (e.g. the backend's API_KEY changed) —
-      // bounce to the login screen instead of surfacing a raw 500.
+      // Stale or expired session token — bounce to the login screen instead
+      // of surfacing a raw 500.
       redirect('/login');
     }
     let message = `Request failed with status ${response.status}`;
@@ -90,13 +91,58 @@ function toQueryString(params: Record<string, string | number | undefined>) {
 
 // ---- Auth ----------------------------------------------------------------
 
-export function verifyPassword(password: string): Promise<boolean> {
-  return fetch(`${API_URL}/auth/session`, {
-    headers: { 'x-api-key': password },
-    cache: 'no-store',
-  })
-    .then((res) => res.ok)
-    .catch(() => false);
+export interface AuthResult {
+  token: string;
+  user: CurrentUser;
+}
+
+async function authRequest(
+  path: string,
+  body: Record<string, string>,
+): Promise<AuthResult | { error: string }> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+    });
+  } catch {
+    return {
+      error:
+        'Could not reach the Student Success API. Check that the backend is running and API_URL is correct.',
+    };
+  }
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = Array.isArray(payload?.message)
+      ? payload.message.join(', ')
+      : payload?.message ?? 'Something went wrong. Please try again.';
+    return { error: message };
+  }
+  return payload as AuthResult;
+}
+
+export function signup(dto: {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}): Promise<AuthResult | { error: string }> {
+  return authRequest('/auth/signup', dto);
+}
+
+export function login(dto: {
+  email: string;
+  password: string;
+}): Promise<AuthResult | { error: string }> {
+  return authRequest('/auth/login', dto);
+}
+
+export function getCurrentUser(): Promise<CurrentUser> {
+  return request<CurrentUser>('/auth/me');
 }
 
 // ---- Students -------------------------------------------------------------

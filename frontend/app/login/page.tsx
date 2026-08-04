@@ -12,11 +12,11 @@ export default function LoginPage() {
           <p className="font-mono text-xs uppercase tracking-wide text-ink-faint">
             Student Success Analytics
           </p>
-          <CardTitle className="mt-1 text-2xl">Staff access</CardTitle>
+          <CardTitle className="mt-1 text-2xl">Staff sign in</CardTitle>
           <CardDescription>
             {DEMO_MODE
               ? 'Demo mode is on — no sign-in needed.'
-              : 'Enter the staff access password to view cohort risk, attendance, and engagement records.'}
+              : 'Sign in with your staff account to view cohort risk, attendance, and engagement records.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -25,7 +25,18 @@ export default function LoginPage() {
               <Link href="/">Continue to the dashboard</Link>
             </Button>
           ) : (
-            <LoginForm />
+            <>
+              <LoginForm />
+              <p className="mt-4 font-sans text-sm text-ink-soft">
+                No account yet?{' '}
+                <Link
+                  href="/signup"
+                  className="font-medium text-primary-dark underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  Create one
+                </Link>
+              </p>
+            </>
           )}
         </CardContent>
       </Card>

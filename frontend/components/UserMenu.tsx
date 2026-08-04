@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
 import { logout } from '@/app/session-actions';
+import type { CurrentUser } from '@/lib/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -12,8 +13,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export function UserMenu() {
-  const label = DEMO_MODE ? 'Demo staff account' : 'Staff account';
+function initials(user: CurrentUser): string {
+  return `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase() || 'SA';
+}
+
+export function UserMenu({ user }: { user?: CurrentUser | null }) {
+  const label = DEMO_MODE
+    ? 'Demo staff account'
+    : user
+      ? `${user.firstName} ${user.lastName}`
+      : 'Staff account';
 
   return (
     <DropdownMenu>
@@ -24,7 +33,7 @@ export function UserMenu() {
           aria-label={`Account menu for ${label}`}
         >
           <Avatar className="h-8 w-8">
-            <AvatarFallback>SA</AvatarFallback>
+            <AvatarFallback>{user ? initials(user) : 'SA'}</AvatarFallback>
           </Avatar>
           <span className="hidden max-w-[9rem] truncate font-sans text-sm font-medium text-ink sm:block">
             {label}
@@ -34,6 +43,9 @@ export function UserMenu() {
       <DropdownMenuContent align="end">
         <DropdownMenuLabel className="normal-case tracking-normal text-ink">
           <span className="block truncate font-medium">{label}</span>
+          {!DEMO_MODE && user && (
+            <span className="block truncate font-normal text-ink-faint">{user.email}</span>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

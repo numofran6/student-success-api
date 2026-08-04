@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
 import { applyStoredCompactMode } from '@/lib/preferences';
+import type { CurrentUser } from '@/lib/types';
 import { UserMenu } from './UserMenu';
 
 const NAV_ITEMS = [
@@ -26,7 +27,13 @@ const NAV_ITEMS = [
   { href: '/recommendations', label: 'Recommendations', icon: Bell },
 ];
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  user,
+}: {
+  children: ReactNode;
+  user?: CurrentUser | null;
+}) {
   const pathname = usePathname();
 
   useEffect(() => {
@@ -105,7 +112,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-end border-b border-line bg-surface px-4 py-2.5 lg:px-10">
-          <UserMenu />
+          <UserMenu user={user} />
         </header>
 
         <main id="main-content" tabIndex={-1} className="flex-1 px-4 py-6 lg:px-10 lg:py-8">

@@ -6,7 +6,7 @@ export default () => ({
     synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
   },
   auth: {
-    apiKey: process.env.API_KEY,
+    jwtSecret: process.env.JWT_SECRET,
   },
   analyticsService: {
     baseUrl: process.env.ANALYTICS_SERVICE_URL ?? 'http://localhost:8000',

@@ -21,15 +21,16 @@ loads. The browser never talks to the NestJS backend directly at all:
   a recommendation's status) go through **Server Actions** (`app/actions.ts`),
   called from small client components, which then `revalidatePath` so the
   page's server-rendered data refreshes automatically.
-- **Auth** is an httpOnly session cookie set by a Server Action after
-  checking the password against the backend — not a token sitting in
-  `localStorage` that every client-side fetch has to attach. `middleware.ts`
-  redirects to `/login` if the cookie is missing.
+- **Auth** is email/password sign-in against the backend (bcrypt-hashed
+  passwords, JWT session tokens) — a Server Action stores the returned JWT in
+  an httpOnly cookie, rather than a token sitting in `localStorage` that
+  every client-side fetch has to attach. `middleware.ts` redirects to
+  `/login` if the cookie is missing.
 
 This was a deliberate change from an earlier client-rendered version (every
 page was `'use client'`, fetched its own data after mount, and gated
-everything behind a client-side password check) — that architecture meant a
-page couldn't render anything until the browser had loaded, checked auth, and
+everything behind a client-side check) — that architecture meant a page
+couldn't render anything until the browser had loaded, checked auth, and
 then fetched its data in a second round trip. Rendering server-side removes
 that whole sequence for the common case.
 
@@ -87,8 +88,9 @@ as described below. Nothing else in the code needs to change.
 - **Recharts** for charts (the one place that must stay client-rendered —
   each chart is its own small `'use client'` component under
   `components/charts/`, fed data as props from the server-rendered page)
-- **Shared staff password**, held server-side in an httpOnly session cookie
-  after login — see Architecture above.
+- **Email/password auth**, backed by the NestJS API's bcrypt + JWT, held
+  server-side in an httpOnly session cookie after login — see Architecture
+  above.
 
 No other UI framework or component library is used, so there's nothing extra
 to learn before making changes.
@@ -98,12 +100,15 @@ to learn before making changes.
 ```
 app/
   layout.tsx                  Root layout: fonts, metadata only
-  login/page.tsx, LoginForm.tsx   Password form (Server Action + useFormState)
-  session-actions.ts           Server Actions: login (sets cookie), logout
+  login/page.tsx, LoginForm.tsx     Email/password sign-in (Server Action + useFormState)
+  signup/page.tsx, SignupForm.tsx    Create account: first/last name, email, password
+  session-actions.ts           Server Actions: login, signup (both set the
+                                 session cookie from the returned JWT), logout
   actions.ts                    Server Actions: run risk assessment, generate
                                  recommendations, update recommendation status
   (app)/                       Route group for every authenticated page —
                                  shares one layout.tsx that renders AppShell
+                                 and fetches the current user for the header
     layout.tsx
     page.tsx, DemoDashboard.tsx        Cohort overview ("/")
     students/page.tsx, DemoStudentsPage.tsx     Paginated, filterable register
@@ -112,7 +117,8 @@ app/
     assessments/page.tsx, DemoAssessmentsPage.tsx
     engagement/page.tsx, DemoEngagementPage.tsx
     recommendations/page.tsx, DemoRecommendationsPage.tsx
-    profile/page.tsx, settings/page.tsx
+    profile/page.tsx              Shows the signed-in user's name/email
+    settings/page.tsx, SettingsView.tsx
 
   Every real route has a same-folder `Demo*` component — a plain client
   component preserving the original fully client-rendered behaviour, used
@@ -145,8 +151,10 @@ components/
 
 lib/
   server/api.ts                 Server-only API client — reads the session
-                                 cookie, calls the NestJS backend, used only
-                                 from Server Components/Actions
+                                 cookie, calls the NestJS backend (signup,
+                                 login, getCurrentUser, and every data
+                                 endpoint), used only from Server
+                                 Components/Actions
   server/session.ts             httpOnly cookie get/set/clear helpers
   demo-api.ts                   Demo-only API client, delegates to mock-data.ts
   types.ts                      TypeScript types mirroring the backend entities
@@ -173,18 +181,21 @@ generation step and no hidden configuration.
    ```
    - `API_URL` — the base URL of your running NestJS backend (e.g.
      `http://localhost:4001`). Server-only; it never reaches the browser.
-   - No auth variables to set here — the login screen asks for a password at
-     runtime, checked against the backend's `API_KEY` env var.
+   - No auth variables to set here — create an account from `/signup` once
+     the backend is running; there's nothing to configure on the frontend
+     side for auth.
 5. Run the dev server:
    ```bash
    npm run dev
    ```
-   Then open `http://localhost:3000`.
+   Then open `http://localhost:3000`, click "Create one" on the sign-in
+   screen, and sign up.
 
 ## Backend contract this frontend expects
 
 | Area | Endpoints used |
 | --- | --- |
+| Auth | `POST /auth/signup`, `POST /auth/login`, `GET /auth/me` |
 | Students | `GET/POST /students`, `GET/PATCH/DELETE /students/:id` |
 | Attendance | `GET /students/:id/attendance-records`, `GET /students/:id/attendance-summary`, `POST /attendance-records` |
 | Assessments | `GET /students/:id/assessment-records`, `GET /students/:id/assessment-summary`, `POST /assessment-records` |
@@ -192,10 +203,10 @@ generation step and no hidden configuration.
 | Risk assessment | `GET/POST /students/:id/risk-assessments`, `GET /risk-assessments/at-risk` |
 | Recommendations | `GET/POST /students/:id/recommendations`, `GET /recommendations/early-warnings`, `PATCH /recommendations/:id/status` |
 
-All routes are protected by `ApiKeyAuthGuard`, so every request from
-`lib/server/api.ts` attaches the session cookie's password as an `X-API-Key`
-header automatically — done once, on the server, rather than by every
-client-side fetch.
+Every route except `signup`/`login` is protected by `JwtAuthGuard`, so every
+request from `lib/server/api.ts` attaches the session cookie's JWT as an
+`Authorization: Bearer` header automatically — done once, on the server,
+rather than by every client-side fetch.
 
 ## Accessibility
 

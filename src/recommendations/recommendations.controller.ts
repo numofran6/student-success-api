@@ -8,14 +8,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { ApiKeyAuthGuard } from '../auth/api-key-auth.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RecommendationsService } from './recommendations.service';
 import { UpdateRecommendationStatusDto } from './dto/update-recommendation-status.dto';
 
 @ApiTags('recommendations')
-@ApiSecurity('x-api-key')
-@UseGuards(ApiKeyAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller()
 export class RecommendationsController {
   constructor(

@@ -25,7 +25,7 @@ async function bootstrap() {
       'Backend API for the AI-powered student success analytics platform: student data management, predictive risk assessment, and recommendations.',
     )
     .setVersion('1.0')
-    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'x-api-key')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);

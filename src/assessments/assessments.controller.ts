@@ -7,14 +7,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { ApiKeyAuthGuard } from '../auth/api-key-auth.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AssessmentsService } from './assessments.service';
 import { CreateAssessmentRecordDto } from './dto/create-assessment-record.dto';
 
 @ApiTags('assessments')
-@ApiSecurity('x-api-key')
-@UseGuards(ApiKeyAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller()
 export class AssessmentsController {
   constructor(private readonly assessmentsService: AssessmentsService) {}

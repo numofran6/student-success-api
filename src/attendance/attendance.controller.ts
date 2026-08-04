@@ -7,14 +7,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { ApiKeyAuthGuard } from '../auth/api-key-auth.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceRecordDto } from './dto/create-attendance-record.dto';
 
 @ApiTags('attendance')
-@ApiSecurity('x-api-key')
-@UseGuards(ApiKeyAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller()
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}

@@ -45,7 +45,10 @@ async function seed() {
   const dataSource = new DataSource({
     type: 'postgres',
     url: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    ssl:
+      process.env.DATABASE_SSL === 'true'
+        ? { rejectUnauthorized: false }
+        : false,
     entities: [
       Student,
       AttendanceRecord,
@@ -80,12 +83,19 @@ async function seed() {
       }),
     );
 
-    for (const courseCode of COURSE_CODES.slice(0, randomInt(2, COURSE_CODES.length))) {
+    for (const courseCode of COURSE_CODES.slice(
+      0,
+      randomInt(2, COURSE_CODES.length),
+    )) {
       const sessionsScheduled = randomInt(10, 20);
       const attendanceFloor = 40 + tierBias * 20;
       const sessionsAttended = Math.min(
         sessionsScheduled,
-        Math.round((sessionsScheduled * randomInt(attendanceFloor, attendanceFloor + 30)) / 100),
+        Math.round(
+          (sessionsScheduled *
+            randomInt(attendanceFloor, attendanceFloor + 30)) /
+            100,
+        ),
       );
       await attendanceRepo.save(
         attendanceRepo.create({
@@ -95,7 +105,10 @@ async function seed() {
           sessionsScheduled,
           sessionsAttended,
           attendanceRate:
-            sessionsScheduled === 0 ? 0 : Math.round((sessionsAttended / sessionsScheduled) * 10000) / 100,
+            sessionsScheduled === 0
+              ? 0
+              : Math.round((sessionsAttended / sessionsScheduled) * 10000) /
+                100,
           recordedAt: isoDateDaysAgo(randomInt(1, 30)),
         }),
       );
@@ -133,7 +146,9 @@ async function seed() {
     }
   }
 
-  console.log(`Seeded ${STUDENT_COUNT} students with attendance, assessment, and engagement records.`);
+  console.log(
+    `Seeded ${STUDENT_COUNT} students with attendance, assessment, and engagement records.`,
+  );
   await dataSource.destroy();
 }
 

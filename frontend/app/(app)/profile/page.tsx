@@ -1,14 +1,18 @@
-'use client';
-
 import Link from 'next/link';
+import { Settings } from 'lucide-react';
 import { DEMO_MODE } from '@/lib/demo';
+import { getCurrentUser } from '@/lib/server/api';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
 
-export default function ProfilePage() {
-  const label = DEMO_MODE ? 'Demo staff account' : 'Staff account';
+export default async function ProfilePage() {
+  const user = DEMO_MODE ? null : await getCurrentUser();
+
+  const displayName = DEMO_MODE ? 'Demo staff account' : `${user!.firstName} ${user!.lastName}`;
+  const initials = DEMO_MODE
+    ? 'SA'
+    : `${user!.firstName[0] ?? ''}${user!.lastName[0] ?? ''}`.toUpperCase();
 
   return (
     <div className="max-w-xl space-y-6">
@@ -20,18 +24,18 @@ export default function ProfilePage() {
       <Card>
         <CardHeader className="flex-row items-center gap-4 space-y-0">
           <Avatar className="h-14 w-14">
-            <AvatarFallback className="text-base">SA</AvatarFallback>
+            <AvatarFallback className="text-base">{initials}</AvatarFallback>
           </Avatar>
           <div>
-            <CardTitle>{label}</CardTitle>
-            <CardDescription>Shared staff access — no individual accounts</CardDescription>
+            <CardTitle>{displayName}</CardTitle>
+            <CardDescription>{DEMO_MODE ? 'Sample account' : user!.email}</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <p className="font-sans text-sm text-ink-soft">
             {DEMO_MODE
               ? "This is a placeholder profile shown in demo mode — it isn't a real signed-in account."
-              : 'Academic staff share a single access password for this workspace, so there’s no individual profile information to manage here.'}
+              : 'Your name and email are shown here from your staff account. There are no other profile fields to manage yet.'}
           </p>
           <Button asChild variant="outline" className="mt-4">
             <Link href="/settings">

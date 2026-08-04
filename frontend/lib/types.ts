@@ -124,3 +124,10 @@ export interface ApiErrorPayload {
   message: string | string[];
   error?: string;
 }
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
