@@ -8,14 +8,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiKeyAuthGuard } from '../auth/api-key-auth.guard';
 import { RecommendationsService } from './recommendations.service';
 import { UpdateRecommendationStatusDto } from './dto/update-recommendation-status.dto';
 
 @ApiTags('recommendations')
-@ApiBearerAuth()
-@UseGuards(FirebaseAuthGuard)
+@ApiSecurity('x-api-key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class RecommendationsController {
   constructor(

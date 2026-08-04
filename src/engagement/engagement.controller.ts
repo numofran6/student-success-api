@@ -7,14 +7,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiKeyAuthGuard } from '../auth/api-key-auth.guard';
 import { EngagementService } from './engagement.service';
 import { CreateEngagementRecordDto } from './dto/create-engagement-record.dto';
 
 @ApiTags('engagement')
-@ApiBearerAuth()
-@UseGuards(FirebaseAuthGuard)
+@ApiSecurity('x-api-key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class EngagementController {
   constructor(private readonly engagementService: EngagementService) {}

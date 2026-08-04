@@ -7,14 +7,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiKeyAuthGuard } from '../auth/api-key-auth.guard';
 import { AssessmentsService } from './assessments.service';
 import { CreateAssessmentRecordDto } from './dto/create-assessment-record.dto';
 
 @ApiTags('assessments')
-@ApiBearerAuth()
-@UseGuards(FirebaseAuthGuard)
+@ApiSecurity('x-api-key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class AssessmentsController {
   constructor(private readonly assessmentsService: AssessmentsService) {}

@@ -5,10 +5,8 @@ export default () => ({
     ssl: process.env.DATABASE_SSL === 'true',
     synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
   },
-  firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  auth: {
+    apiKey: process.env.API_KEY,
   },
   analyticsService: {
     baseUrl: process.env.ANALYTICS_SERVICE_URL ?? 'http://localhost:8000',

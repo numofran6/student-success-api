@@ -7,14 +7,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiKeyAuthGuard } from '../auth/api-key-auth.guard';
 import { RiskAssessmentService } from './risk-assessment.service';
 import { RiskLevel } from '../database/entities/risk-assessment.entity';
 
 @ApiTags('risk-assessment')
-@ApiBearerAuth()
-@UseGuards(FirebaseAuthGuard)
+@ApiSecurity('x-api-key')
+@UseGuards(ApiKeyAuthGuard)
 @Controller()
 export class RiskAssessmentController {
   constructor(private readonly riskAssessmentService: RiskAssessmentService) {}
