@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { logout } from '@/app/session-actions';
 import { DEMO_MODE } from '@/lib/demo';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +19,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
 export default function SettingsPage() {
-  const { logout } = useAuth();
   const [compact, setCompact] = useState(false);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [saved, setSaved] = useState(false);

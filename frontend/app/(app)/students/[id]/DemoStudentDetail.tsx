@@ -1,18 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import { Sparkles, RefreshCw, Check, CheckCheck } from 'lucide-react';
+import { Sparkles, RefreshCw } from 'lucide-react';
 import {
   studentsApi,
   attendanceApi,
@@ -20,20 +9,18 @@ import {
   engagementApi,
   riskAssessmentApi,
   recommendationsApi,
-} from '@/lib/api';
+} from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import { KpiCard } from '@/components/KpiCard';
 import { RiskBadge } from '@/components/RiskBadge';
-import { StatusPill } from '@/components/StatusPill';
+import { RecommendationCard } from '@/components/RecommendationCard';
 import { Button } from '@/components/ui/button';
 import { LoadingState, ErrorState, EmptyState } from '@/components/StatusStates';
 import { DataDisclosure } from '@/components/DataDisclosure';
-import {
-  formatDate,
-  formatDateTime,
-  formatPercent,
-  ASSESSMENT_TYPE_LABEL,
-} from '@/lib/format';
+import { AttendanceLineChart } from '@/components/charts/AttendanceLineChart';
+import { AssessmentLineChart } from '@/components/charts/AssessmentLineChart';
+import { EngagementBarChart } from '@/components/charts/EngagementBarChart';
+import { formatDate, formatPercent, ASSESSMENT_TYPE_LABEL } from '@/lib/format';
 import type { RecommendationStatus } from '@/lib/types';
 
 async function loadStudent(id: string) {
@@ -71,12 +58,7 @@ async function loadStudent(id: string) {
   };
 }
 
-export default function StudentDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const { id } = params;
+export function DemoStudentDetail({ id }: { id: string }) {
   const { data, loading, error, refetch } = useApi(() => loadStudent(id), [id]);
   const [runningRisk, setRunningRisk] = useState(false);
   const [generatingRecs, setGeneratingRecs] = useState(false);
@@ -112,18 +94,15 @@ export default function StudentDetailPage({
     }
   }
 
-  async function handleStatusChange(
-    recommendationId: string,
-    status: RecommendationStatus,
-  ) {
-    setActionError(null);
+  async function handleStatusChange(recommendationId: string, status: RecommendationStatus) {
     try {
       await recommendationsApi.updateStatus(recommendationId, status);
       refetch();
+      return {};
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : 'Could not update the recommendation.',
-      );
+      return {
+        error: err instanceof Error ? err.message : 'Could not update the recommendation.',
+      };
     }
   }
 
@@ -157,10 +136,7 @@ export default function StudentDetailPage({
   const attendanceChartData = attendanceRecords
     .slice()
     .reverse()
-    .map((r) => ({
-      date: formatDate(r.recordedAt),
-      rate: Number(r.attendanceRate),
-    }));
+    .map((r) => ({ date: formatDate(r.recordedAt), rate: Number(r.attendanceRate) }));
 
   const assessmentChartData = assessmentRecords
     .slice()
@@ -264,17 +240,7 @@ export default function StudentDetailPage({
             <EmptyState title="No attendance records yet" />
           ) : (
             <>
-              <div className="h-56" aria-hidden="true">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={attendanceChartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#DED5BF" />
-                    <XAxis dataKey="date" tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                    <YAxis unit="%" tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#FFFDF8', border: '1px solid #DED5BF', borderRadius: 3, fontSize: 12 }} />
-                    <Line type="monotone" dataKey="rate" stroke="#2F6F62" strokeWidth={2} dot={{ r: 3 }} name="Attendance rate" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <AttendanceLineChart data={attendanceChartData} />
               <DataDisclosure
                 caption="Attendance rate over time"
                 columns={['Date', 'Attendance rate (%)']}
@@ -294,17 +260,7 @@ export default function StudentDetailPage({
             <EmptyState title="No assessment records yet" />
           ) : (
             <>
-              <div className="h-56" aria-hidden="true">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={assessmentChartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#DED5BF" />
-                    <XAxis dataKey="date" tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                    <YAxis unit="%" tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#FFFDF8', border: '1px solid #DED5BF', borderRadius: 3, fontSize: 12 }} />
-                    <Line type="monotone" dataKey="percentage" stroke="#C08A2E" strokeWidth={2} dot={{ r: 3 }} name="Score %" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <AssessmentLineChart data={assessmentChartData} />
               <DataDisclosure
                 caption="Assessment scores over time"
                 columns={['Date', 'Assessment', 'Score (%)']}
@@ -324,19 +280,7 @@ export default function StudentDetailPage({
             <EmptyState title="No engagement records yet" />
           ) : (
             <>
-              <div className="h-56" aria-hidden="true">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={engagementChartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#DED5BF" />
-                    <XAxis dataKey="period" tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                    <YAxis tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#FFFDF8', border: '1px solid #DED5BF', borderRadius: 3, fontSize: 12 }} />
-                    <Bar dataKey="clicks" fill="#2F6F62" name="VLE clicks" radius={[2, 2, 0, 0]} />
-                    <Bar dataKey="logins" fill="#6E8B5E" name="Logins" radius={[2, 2, 0, 0]} />
-                    <Bar dataKey="forum" fill="#C08A2E" name="Forum posts" radius={[2, 2, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <EngagementBarChart data={engagementChartData} />
               <DataDisclosure
                 caption="Engagement activity by period"
                 columns={['Period', 'VLE clicks', 'Logins', 'Forum posts']}
@@ -359,45 +303,11 @@ export default function StudentDetailPage({
             />
           ) : (
             recommendations.map((rec) => (
-              <div
+              <RecommendationCard
                 key={rec.id}
-                className="rounded-card border border-line bg-surface p-4 shadow-card"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <p className="font-mono text-[0.65rem] uppercase tracking-wide text-ink-faint">
-                      {rec.type === 'EARLY_WARNING' ? 'Early warning' : 'Guidance'} · {formatDateTime(rec.createdAt)}
-                    </p>
-                    <h3 className="mt-0.5 font-display text-base font-semibold text-ink">
-                      {rec.title}
-                    </h3>
-                  </div>
-                  <StatusPill status={rec.status} />
-                </div>
-                <p className="mt-2 font-sans text-sm text-ink-soft">{rec.message}</p>
-                <div className="mt-3 flex gap-2">
-                  {rec.status === 'PENDING' && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleStatusChange(rec.id, 'ACKNOWLEDGED')}
-                    >
-                      <Check /> Acknowledge
-                    </Button>
-                  )}
-                  {rec.status !== 'RESOLVED' && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleStatusChange(rec.id, 'RESOLVED')}
-                    >
-                      <CheckCheck /> Mark resolved
-                    </Button>
-                  )}
-                </div>
-              </div>
+                recommendation={rec}
+                onStatusChange={handleStatusChange}
+              />
             ))
           )}
         </div>

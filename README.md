@@ -26,7 +26,9 @@ npm run seed              # populate the database with a synthetic cohort
 npm run dev                # runs backend on :4001, frontend on :3000, analytics on :8000
 ```
 
-Open `http://localhost:3000`. The frontend's `NEXT_PUBLIC_API_URL` already defaults to `http://localhost:4001`, matching this backend's `PORT=4001` — no port juggling needed. Log in with the `API_KEY` value from `.env`.
+Open `http://localhost:3000`. The frontend's `API_URL` already defaults to `http://localhost:4001`, matching this backend's `PORT=4001` — no port juggling needed. Log in with the `API_KEY` value from `.env`.
+
+The frontend is server-rendered — the browser never talks to this backend directly. Every page fetches from the NestJS API server-side (Server Components) and mutations go through Server Actions, which set an httpOnly session cookie on login and attach it to backend requests. See `frontend/README.md`'s Architecture section for the full picture.
 
 Auth is a shared staff password (see below) — no external identity provider to configure. The default `DATABASE_URL` in `.env.example` points at the local Postgres container above; swap it for a Supabase connection string whenever you're ready to move off a local database.
 

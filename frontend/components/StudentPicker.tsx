@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo, useState } from 'react';
-import { studentsApi } from '@/lib/api';
+import { studentsApi } from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import type { Student } from '@/lib/types';
 import { LoadingState, ErrorState } from './StatusStates';

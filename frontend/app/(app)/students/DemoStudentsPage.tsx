@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { studentsApi } from '@/lib/api';
+import { studentsApi } from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import { getStoredPageSize } from '@/lib/preferences';
 import { LoadingState, ErrorState, EmptyState } from '@/components/StatusStates';
 import { Pagination } from '@/components/Pagination';
 import { StudentRiskCell } from '@/components/StudentRiskCell';
 
-export default function StudentsPage() {
+export function DemoStudentsPage() {
   const [programme, setProgramme] = useState('');
   const [cohortYear, setCohortYear] = useState('');
   const [page, setPage] = useState(1);

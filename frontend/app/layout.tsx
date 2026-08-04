@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { AuthProvider } from '@/lib/auth-context';
-import { LoginGate } from '@/components/LoginGate';
-import { AppShell } from '@/components/AppShell';
 
 // Standard Tailwind-style look uses a single plain sans font throughout —
 // no separate serif "display" face. font-display and font-sans (in
@@ -14,10 +11,6 @@ const inter = Inter({
   variable: '--font-sans',
   display: 'swap',
 });
-
-// Every page here depends on the signed-in session and live backend data,
-// so there is nothing worth statically prerendering.
-export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Student Success Analytics',
@@ -32,13 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans`}>
-        <AuthProvider>
-          <LoginGate>
-            <AppShell>{children}</AppShell>
-          </LoginGate>
-        </AuthProvider>
-      </body>
+      <body className={`${inter.variable} font-sans`}>{children}</body>
     </html>
   );
 }

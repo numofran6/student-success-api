@@ -1,9 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import { LogOut, Settings, User as UserIcon } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
 import { DEMO_MODE } from '@/lib/demo';
+import { logout } from '@/app/session-actions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -15,10 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function UserMenu() {
-  const { unlocked, logout } = useAuth();
-
-  if (!unlocked) return null;
-
   const label = DEMO_MODE ? 'Demo staff account' : 'Staff account';
 
   return (
@@ -55,8 +49,12 @@ export function UserMenu() {
         {!DEMO_MODE && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => logout()}>
-              <LogOut /> Sign out
+            <DropdownMenuItem asChild>
+              <form action={logout} className="w-full">
+                <button type="submit" className="flex w-full items-center gap-2">
+                  <LogOut /> Sign out
+                </button>
+              </form>
             </DropdownMenuItem>
           </>
         )}

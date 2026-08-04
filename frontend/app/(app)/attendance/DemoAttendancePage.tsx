@@ -1,25 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import { attendanceApi } from '@/lib/api';
+import { attendanceApi } from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import { StudentPicker } from '@/components/StudentPicker';
 import { KpiCard } from '@/components/KpiCard';
 import { LoadingState, ErrorState, EmptyState } from '@/components/StatusStates';
 import { DataDisclosure } from '@/components/DataDisclosure';
+import { AttendanceLineChart } from '@/components/charts/AttendanceLineChart';
 import { formatDate, formatPercent } from '@/lib/format';
 import type { Student } from '@/lib/types';
 
-export default function AttendancePage() {
+export function DemoAttendancePage() {
   const [student, setStudent] = useState<Student | null>(null);
 
   const { data, loading, error, refetch } = useApi(async () => {
@@ -71,26 +63,12 @@ export default function AttendancePage() {
               <EmptyState title="No attendance records for this student" />
             ) : (
               <>
-                <div className="h-56" aria-hidden="true">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={data.records
-                        .slice()
-                        .reverse()
-                        .map((r) => ({
-                          date: formatDate(r.recordedAt),
-                          rate: Number(r.attendanceRate),
-                        }))}
-                      margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#DED5BF" />
-                      <XAxis dataKey="date" tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                      <YAxis unit="%" tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                      <Tooltip contentStyle={{ background: '#FFFDF8', border: '1px solid #DED5BF', borderRadius: 3, fontSize: 12 }} />
-                      <Line type="monotone" dataKey="rate" stroke="#2F6F62" strokeWidth={2} dot={{ r: 3 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <AttendanceLineChart
+                  data={data.records
+                    .slice()
+                    .reverse()
+                    .map((r) => ({ date: formatDate(r.recordedAt), rate: Number(r.attendanceRate) }))}
+                />
 
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full border-collapse text-left text-sm">

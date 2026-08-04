@@ -1,6 +1,6 @@
 'use client';
 
-import { riskAssessmentApi } from '@/lib/api';
+import { riskAssessmentApi } from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import { RiskBadge } from './RiskBadge';
 import { PulseStrip } from './PulseStrip';

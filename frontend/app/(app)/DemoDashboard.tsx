@@ -1,21 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import { studentsApi, riskAssessmentApi, recommendationsApi } from '@/lib/api';
+import { studentsApi, riskAssessmentApi, recommendationsApi } from '@/lib/demo-api';
 import { useApi } from '@/lib/use-api';
 import { KpiCard } from '@/components/KpiCard';
 import { RiskBadge } from '@/components/RiskBadge';
 import { LoadingState, ErrorState, EmptyState } from '@/components/StatusStates';
 import { DataDisclosure } from '@/components/DataDisclosure';
+import { RiskDistributionChart } from '@/components/charts/RiskDistributionChart';
 import { formatDate } from '@/lib/format';
 
 async function loadDashboard() {
@@ -29,7 +21,7 @@ async function loadDashboard() {
   return { students, high, medium, low, earlyWarnings };
 }
 
-export default function DashboardPage() {
+export function DemoDashboard() {
   const { data, loading, error, refetch } = useApi(loadDashboard, []);
 
   return (
@@ -81,41 +73,11 @@ export default function DashboardPage() {
               Risk distribution
             </h2>
             <div className="mt-3 rounded-card border border-line bg-surface p-4 shadow-card">
-              <div className="h-64" aria-hidden="true">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      { level: 'Low', count: data.low.length, fill: '#5C7A4E' },
-                      { level: 'Medium', count: data.medium.length, fill: '#C08A2E' },
-                      { level: 'High', count: data.high.length, fill: '#B5432F' },
-                    ]}
-                    margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#DED5BF" />
-                    <XAxis
-                      dataKey="level"
-                      tick={{ fill: '#5B5548', fontSize: 12 }}
-                      axisLine={{ stroke: '#DED5BF' }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      allowDecimals={false}
-                      tick={{ fill: '#5B5548', fontSize: 12 }}
-                      axisLine={{ stroke: '#DED5BF' }}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        background: '#FFFDF8',
-                        border: '1px solid #DED5BF',
-                        borderRadius: 3,
-                        fontSize: 12,
-                      }}
-                    />
-                    <Bar dataKey="count" radius={[3, 3, 0, 0]} fill="#2F6F62" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <RiskDistributionChart
+                low={data.low.length}
+                medium={data.medium.length}
+                high={data.high.length}
+              />
               <DataDisclosure
                 caption="Number of students at each risk level"
                 columns={['Risk level', 'Students']}

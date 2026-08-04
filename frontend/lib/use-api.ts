@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from './api';
 
 interface UseApiState<T> {
   data: T | null;
@@ -44,7 +43,7 @@ export function useApi<T>(
       .catch((err) => {
         if (!cancelled && isMounted.current) {
           setError(
-            err instanceof ApiError
+            err instanceof Error
               ? err.message
               : 'Something went wrong while loading this data.',
           );

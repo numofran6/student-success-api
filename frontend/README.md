@@ -8,12 +8,39 @@ attendance, assessments, engagement, risk assessment, and recommendations.
 Frontend/design lead: Milan and Nikin. Backend/API: Numo. ML models: Numo and
 Vishal.
 
+## Architecture: server-rendered, not a client-side SPA
+
+Every data-driven page is an **async Server Component** — it fetches from the
+NestJS API directly on the server during rendering and sends back real HTML,
+instead of shipping an empty shell that fetches everything after the browser
+loads. The browser never talks to the NestJS backend directly at all:
+
+- **Reads** happen in Server Components (`lib/server/api.ts`), fetched during
+  render on the server.
+- **Writes** (running a risk assessment, generating recommendations, changing
+  a recommendation's status) go through **Server Actions** (`app/actions.ts`),
+  called from small client components, which then `revalidatePath` so the
+  page's server-rendered data refreshes automatically.
+- **Auth** is an httpOnly session cookie set by a Server Action after
+  checking the password against the backend — not a token sitting in
+  `localStorage` that every client-side fetch has to attach. `middleware.ts`
+  redirects to `/login` if the cookie is missing.
+
+This was a deliberate change from an earlier client-rendered version (every
+page was `'use client'`, fetched its own data after mount, and gated
+everything behind a client-side password check) — that architecture meant a
+page couldn't render anything until the browser had loaded, checked auth, and
+then fetched its data in a second round trip. Rendering server-side removes
+that whole sequence for the common case.
+
 ## Just want to see the UI? Run it in demo mode
 
 You don't need the backend or Supabase to preview this. There's a
 built-in **demo mode** that fills the whole app with realistic sample data —
 students, attendance, grades, engagement, risk levels, recommendations — all
-generated in the browser.
+generated in the browser. Demo mode is the one place still fully
+client-rendered (each `Demo*` component fetches from in-memory mock data via
+the old `useApi` hook), since there's no real backend to render against.
 
 1. Install dependencies:
    ```bash
@@ -24,7 +51,8 @@ generated in the browser.
    NEXT_PUBLIC_DEMO_MODE=true
    ```
    (You don't need any of the other variables from `.env.example` for this —
-   demo mode ignores them.)
+   demo mode ignores them, and `middleware.ts` skips the login redirect
+   entirely when it's on.)
 3. Run it:
    ```bash
    npm run dev
@@ -47,7 +75,8 @@ as described below. Nothing else in the code needs to change.
 
 ## Stack
 
-- **Next.js 14** (App Router) + **TypeScript**
+- **Next.js 14** (App Router) + **TypeScript**, Server Components and Server
+  Actions for real (non-demo) pages
 - **Tailwind CSS** for styling, with a small custom design-token system (see
   `tailwind.config.ts`)
 - **shadcn/ui** for interactive components (dropdown menu, avatar, tabs,
@@ -55,10 +84,11 @@ as described below. Nothing else in the code needs to change.
   package, so you fully own and can edit the code. Add more anytime with
   `npx shadcn add <component>` (a `components.json` is already set up)
 - **lucide-react** for icons throughout the nav, buttons, and menus
-- **Recharts** for charts
-- **Shared staff password** — a login screen asks for the access password,
-  which is then sent as the `X-API-Key` header on every request to match the
-  backend's `ApiKeyAuthGuard`.
+- **Recharts** for charts (the one place that must stay client-rendered —
+  each chart is its own small `'use client'` component under
+  `components/charts/`, fed data as props from the server-rendered page)
+- **Shared staff password**, held server-side in an httpOnly session cookie
+  after login — see Architecture above.
 
 No other UI framework or component library is used, so there's nothing extra
 to learn before making changes.
@@ -66,42 +96,63 @@ to learn before making changes.
 ## Project structure
 
 ```
-app/                        Routes (Next.js App Router)
-  layout.tsx                 Root layout: fonts, auth provider, app shell
-  page.tsx                    Cohort overview dashboard ("/")
-  students/page.tsx           Paginated, filterable student register
-  students/[id]/page.tsx       Student profile: attendance, assessments,
-                               engagement, risk, recommendations
-  attendance/page.tsx          Attendance module (pick a student, see records)
-  assessments/page.tsx         Assessments module
-  engagement/page.tsx          Engagement module
-  recommendations/page.tsx     Cohort-wide early warnings + per-student lookup
-  profile/page.tsx              Signed-in user's account info
-  settings/page.tsx             Compact mode + default page size (real, saved
-                               to this browser's localStorage)
-  globals.css                  Tailwind layers + accessibility-related resets
+app/
+  layout.tsx                  Root layout: fonts, metadata only
+  login/page.tsx, LoginForm.tsx   Password form (Server Action + useFormState)
+  session-actions.ts           Server Actions: login (sets cookie), logout
+  actions.ts                    Server Actions: run risk assessment, generate
+                                 recommendations, update recommendation status
+  (app)/                       Route group for every authenticated page —
+                                 shares one layout.tsx that renders AppShell
+    layout.tsx
+    page.tsx, DemoDashboard.tsx        Cohort overview ("/")
+    students/page.tsx, DemoStudentsPage.tsx     Paginated, filterable register
+    students/[id]/page.tsx, DemoStudentDetail.tsx   Student profile
+    attendance/page.tsx, DemoAttendancePage.tsx
+    assessments/page.tsx, DemoAssessmentsPage.tsx
+    engagement/page.tsx, DemoEngagementPage.tsx
+    recommendations/page.tsx, DemoRecommendationsPage.tsx
+    profile/page.tsx, settings/page.tsx
+
+  Every real route has a same-folder `Demo*` component — a plain client
+  component preserving the original fully client-rendered behaviour, used
+  only when NEXT_PUBLIC_DEMO_MODE=true. The `page.tsx` in each folder is a
+  thin branch: demo mode renders `Demo*`, otherwise it fetches server-side
+  and renders directly.
+
+middleware.ts                 Redirects to /login when the session cookie is
+                                missing (skipped entirely in demo mode)
 
 components/
-  ui/                          shadcn/ui primitives (button, card, avatar,
-                               dropdown-menu, tabs, switch, label, separator)
+  ui/                          shadcn/ui primitives
+  charts/                      Recharts wrappers (the only client-rendered
+                                 pieces of the real, non-demo pages)
   UserMenu.tsx                 Avatar dropdown: Profile, Settings, Sign out
-  AppShell.tsx                Sidebar navigation + layout frame
-  LoginGate.tsx                Shared-password screen shown when locked
+  AppShell.tsx                 Sidebar navigation + layout frame
+  students/StudentHeader.tsx    Client island: the two action buttons + error
+                                 banner on a student's profile page
+  RecommendationCard.tsx        Client island: a recommendation with its
+                                 Acknowledge/Resolve buttons (shared by the
+                                 student profile and recommendations pages)
+  StudentPickerLink.tsx          SSR-friendly picker — takes a preloaded
+                                 student list as a prop, navigates via the
+                                 URL instead of fetching itself
+  StudentPicker.tsx, StudentRiskCell.tsx   Self-fetching originals, demo-only
+  RiskCell.tsx                   Presentational counterpart to
+                                 StudentRiskCell, fed already-fetched data
   KpiCard.tsx, RiskBadge.tsx, StatusPill.tsx, PulseStrip.tsx
-  StatusStates.tsx             Loading / error / empty state components
-  DataDisclosure.tsx           <details> table fallback for every chart
-  StudentPicker.tsx            Searchable student selector for module pages
-  StudentRiskCell.tsx          Per-row risk badge + sparkline for the register
-  Pagination.tsx
+  StatusStates.tsx, DataDisclosure.tsx, Pagination.tsx
 
-lib/                        Non-UI logic
-  api.ts                       Typed API client — one object per backend module
-  types.ts                     TypeScript types mirroring the backend entities
-  session.ts                   localStorage helper for the stored API key
-  auth-context.tsx             React context wrapping the password-gate state
-  use-api.ts                   Small fetch-with-loading/error/refetch hook
-  format.ts                    Date/percentage formatting, label maps
-  demo.ts                      Demo mode flag (NEXT_PUBLIC_DEMO_MODE)
+lib/
+  server/api.ts                 Server-only API client — reads the session
+                                 cookie, calls the NestJS backend, used only
+                                 from Server Components/Actions
+  server/session.ts             httpOnly cookie get/set/clear helpers
+  demo-api.ts                   Demo-only API client, delegates to mock-data.ts
+  types.ts                      TypeScript types mirroring the backend entities
+  use-api.ts                    fetch-with-loading/error/refetch hook (demo only)
+  format.ts                     Date/percentage formatting, label maps
+  demo.ts                       Demo mode flag (NEXT_PUBLIC_DEMO_MODE)
   mock-data.ts                  Sample data + mock API used only in demo mode
 ```
 
@@ -120,12 +171,10 @@ generation step and no hidden configuration.
    ```bash
    cp .env.example .env.local
    ```
-   - `NEXT_PUBLIC_API_URL` — the base URL of your running NestJS backend
-     (e.g. `http://localhost:4001`). If the backend also runs on port 3000,
-     either change one of the two ports or set this explicitly.
+   - `API_URL` — the base URL of your running NestJS backend (e.g.
+     `http://localhost:4001`). Server-only; it never reaches the browser.
    - No auth variables to set here — the login screen asks for a password at
-     runtime, checked against the backend's `API_KEY` env var. There's
-     nothing to fill in on the frontend side for auth.
+     runtime, checked against the backend's `API_KEY` env var.
 5. Run the dev server:
    ```bash
    npm run dev
@@ -144,8 +193,9 @@ generation step and no hidden configuration.
 | Recommendations | `GET/POST /students/:id/recommendations`, `GET /recommendations/early-warnings`, `PATCH /recommendations/:id/status` |
 
 All routes are protected by `ApiKeyAuthGuard`, so every request from
-`lib/api.ts` attaches the stored shared password as an `X-API-Key` header
-automatically, once the user has unlocked the app via `LoginGate`.
+`lib/server/api.ts` attaches the session cookie's password as an `X-API-Key`
+header automatically — done once, on the server, rather than by every
+client-side fetch.
 
 ## Accessibility
 
@@ -163,6 +213,9 @@ This was built to WCAG 2.2 AA as a baseline:
 - `prefers-reduced-motion` is respected globally.
 - Forms use associated `<label>`s; tables use `<caption>`, `scope="col"`,
   and proper header cells.
+- Filter forms on `/students` and student pickers elsewhere degrade to plain
+  URL-based navigation (`<form method="GET">`, `<Link>` pagination) — they
+  work with JavaScript disabled, not just with a screen reader.
 
 If you run an automated audit (e.g. axe, Lighthouse) as part of your
 usability evaluation, this is the intended baseline to test against — please
@@ -182,9 +235,12 @@ what keeps this compliant, rather than a claim of fully manual authorship.
   academic staff/advisors, matching the current data model (no per-student
   login distinction). Adding a student-facing view later needs a new backend
   field linking a login to a `Student` record.
-- `StudentPicker` loads up to 100 students into a `<datalist>` for
-  simplicity. If your dataset grows much larger, swap this for a debounced
-  server-side search once the backend supports filtering by `externalId`.
-- The student register's per-row risk sparkline (`StudentRiskCell`) does one
-  request per visible row. Fine at the current page size (20), but worth
-  revisiting if the backend later adds a batch endpoint.
+- `StudentPickerLink` (and demo mode's `StudentPicker`) load up to 100
+  students into a `<datalist>` for simplicity. If your dataset grows much
+  larger, swap this for a debounced server-side search once the backend
+  supports filtering by `externalId`.
+- The student register's per-row risk (`RiskCell`) is fetched server-side in
+  parallel for every visible row — fine at the current page size (20), but
+  worth revisiting for a batch endpoint if the backend adds one, since it's
+  still N backend requests per page load (just N server-side requests now
+  instead of N client-side ones).

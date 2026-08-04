@@ -1,35 +1,28 @@
-'use client';
-
-import { useState } from 'react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import { engagementApi } from '@/lib/api';
-import { useApi } from '@/lib/use-api';
-import { StudentPicker } from '@/components/StudentPicker';
+import { DEMO_MODE } from '@/lib/demo';
+import { getStudents, getEngagementByStudent, getEngagementSummary } from '@/lib/server/api';
+import { StudentPickerLink } from '@/components/StudentPickerLink';
 import { KpiCard } from '@/components/KpiCard';
-import { LoadingState, ErrorState, EmptyState } from '@/components/StatusStates';
+import { EmptyState } from '@/components/StatusStates';
 import { DataDisclosure } from '@/components/DataDisclosure';
+import { EngagementBarChart } from '@/components/charts/EngagementBarChart';
 import { formatDate } from '@/lib/format';
-import type { Student } from '@/lib/types';
+import { DemoEngagementPage } from './DemoEngagementPage';
 
-export default function EngagementPage() {
-  const [student, setStudent] = useState<Student | null>(null);
+export default async function EngagementPage({
+  searchParams,
+}: {
+  searchParams: { studentId?: string };
+}) {
+  if (DEMO_MODE) return <DemoEngagementPage />;
 
-  const { data, loading, error, refetch } = useApi(async () => {
-    if (!student) return null;
-    const [records, summary] = await Promise.all([
-      engagementApi.listByStudent(student.id),
-      engagementApi.summary(student.id),
-    ]);
-    return { records, summary };
-  }, [student?.id]);
+  const studentId = searchParams.studentId;
+  const [{ data: students }, records, summary] = await Promise.all([
+    getStudents({ limit: 100 }),
+    studentId ? getEngagementByStudent(studentId) : Promise.resolve(null),
+    studentId ? getEngagementSummary(studentId) : Promise.resolve(null),
+  ]);
+
+  const student = students.find((s) => s.id === studentId) ?? null;
 
   return (
     <div className="space-y-6">
@@ -46,7 +39,7 @@ export default function EngagementPage() {
         </p>
       </header>
 
-      <StudentPicker selected={student} onSelect={setStudent} />
+      <StudentPickerLink students={students} selectedId={studentId} basePath="/engagement" />
 
       {!student && (
         <EmptyState
@@ -55,47 +48,31 @@ export default function EngagementPage() {
         />
       )}
 
-      {student && loading && <LoadingState label="Loading engagement…" />}
-      {student && error && <ErrorState message={error} onRetry={refetch} />}
-
-      {student && data && (
+      {student && records && summary && (
         <>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="VLE clicks" value={String(data.summary.totalVleClicks)} />
-            <KpiCard label="Logins" value={String(data.summary.totalLoginCount)} />
-            <KpiCard label="Forum posts" value={String(data.summary.totalForumPosts)} />
-            <KpiCard label="Resource accesses" value={String(data.summary.totalResourceAccessCount)} />
+            <KpiCard label="VLE clicks" value={String(summary.totalVleClicks)} />
+            <KpiCard label="Logins" value={String(summary.totalLoginCount)} />
+            <KpiCard label="Forum posts" value={String(summary.totalForumPosts)} />
+            <KpiCard label="Resource accesses" value={String(summary.totalResourceAccessCount)} />
           </dl>
 
           <div className="rounded-card border border-line bg-surface p-4 shadow-card">
-            {data.records.length === 0 ? (
+            {records.length === 0 ? (
               <EmptyState title="No engagement records for this student" />
             ) : (
               <>
-                <div className="h-56" aria-hidden="true">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={data.records
-                        .slice()
-                        .reverse()
-                        .map((r) => ({
-                          period: formatDate(r.periodStart),
-                          clicks: r.vleClicks,
-                          logins: r.loginCount,
-                          forum: r.forumPosts,
-                        }))}
-                      margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#DED5BF" />
-                      <XAxis dataKey="period" tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                      <YAxis tick={{ fill: '#5B5548', fontSize: 11 }} axisLine={{ stroke: '#DED5BF' }} tickLine={false} />
-                      <Tooltip contentStyle={{ background: '#FFFDF8', border: '1px solid #DED5BF', borderRadius: 3, fontSize: 12 }} />
-                      <Bar dataKey="clicks" fill="#2F6F62" name="VLE clicks" radius={[2, 2, 0, 0]} />
-                      <Bar dataKey="logins" fill="#6E8B5E" name="Logins" radius={[2, 2, 0, 0]} />
-                      <Bar dataKey="forum" fill="#C08A2E" name="Forum posts" radius={[2, 2, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <EngagementBarChart
+                  data={records
+                    .slice()
+                    .reverse()
+                    .map((r) => ({
+                      period: formatDate(r.periodStart),
+                      clicks: r.vleClicks,
+                      logins: r.loginCount,
+                      forum: r.forumPosts,
+                    }))}
+                />
 
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full border-collapse text-left text-sm">
@@ -113,7 +90,7 @@ export default function EngagementPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {data.records.map((r) => (
+                      {records.map((r) => (
                         <tr key={r.id} className="border-b border-line/60 last:border-0">
                           <td className="py-2 pr-4 font-mono text-xs">{r.courseCode}</td>
                           <td className="py-2 pr-4 font-mono text-xs text-ink-soft">
@@ -131,7 +108,7 @@ export default function EngagementPage() {
                 <DataDisclosure
                   caption="Engagement activity by period"
                   columns={['Period', 'VLE clicks', 'Logins', 'Forum posts']}
-                  rows={data.records
+                  rows={records
                     .slice()
                     .reverse()
                     .map((r) => [formatDate(r.periodStart), r.vleClicks, r.loginCount, r.forumPosts])}
