@@ -69,7 +69,15 @@ Both prediction endpoints accept a `StudentFeatureVector` JSON body (see `src/an
 
 ## Seeding data
 
-`npm run seed` populates the database with a synthetic cohort (40 students with attendance, assessment, and engagement records) — the spec allows synthetically generated data where additional testing data is required. Safe to re-run; it just adds more students each time.
+`npm run seed` populates the database with a synthetic cohort (40 students with attendance, assessment, and engagement records) — the spec allows synthetically generated data where additional testing data is required. Re-running it clears the previously seeded synthetic students first, so it's safe to re-run without piling up duplicates. The cohort is weighted so most students land in the "struggling" tier — useful for demoing the risk/recommendation features, since an evenly-split cohort makes for a quiet dashboard.
+
+Seeding only creates attendance/assessment/engagement records — it doesn't call the ML models. Risk assessments and recommendations only exist once something calls those endpoints (normally a button click per student in the UI). To populate them for the whole cohort in one go:
+
+```bash
+ASSESS_API_URL=http://localhost:4001 ASSESS_EMAIL=you@example.com ASSESS_PASSWORD=yourpassword npm run assess-all
+```
+
+Point `ASSESS_API_URL` at whichever backend you just seeded (local or deployed) and use credentials for a staff account that already exists there (sign up via the app first if needed).
 
 ## Deploying (free tier: Vercel + Render + Supabase)
 
@@ -131,6 +139,15 @@ the Supabase connection string and run `npm run seed`, then switch it back
 deployed app and add students via the API directly — the seed script is
 just a shortcut for a realistic starting cohort.
 
+Then populate risk assessments and recommendations for that cohort (seeding
+alone doesn't call the ML models — see "Seeding data" above):
+
+```bash
+ASSESS_API_URL=https://student-success-api-pdzk.onrender.com \
+  ASSESS_EMAIL=you@example.com ASSESS_PASSWORD=yourpassword \
+  npm run assess-all
+```
+
 Visit the Vercel URL, sign up, and you're in.
 
 ## Scripts
@@ -142,6 +159,7 @@ npm run test                # unit tests
 npm run test:e2e             # e2e tests
 npm run lint                 # eslint --fix
 npm run seed                 # populate the database with synthetic students
+npm run assess-all           # run risk assessment + recommendations for every student
 npm run dev                  # run backend + frontend + analytics service together
 npm run install:web          # install frontend deps
 npm run install:analytics    # create the analytics-service Python venv + deps

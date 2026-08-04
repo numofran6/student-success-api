@@ -35,6 +35,16 @@ function pick<T>(items: T[]): T {
   return items[randomInt(0, items.length - 1)];
 }
 
+// Skewed toward "low" (struggling) so most of the seeded cohort ends up
+// flagged at-risk once assessed — useful for demoing the risk/recommendation
+// features, where an evenly-split cohort makes for a fairly quiet dashboard.
+function pickTier(): 'low' | 'medium' | 'high' {
+  const r = Math.random();
+  if (r < 0.7) return 'low';
+  if (r < 0.88) return 'medium';
+  return 'high';
+}
+
 function isoDateDaysAgo(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() - days);
@@ -60,9 +70,14 @@ async function seed() {
   });
 
   await dataSource.initialize();
-  console.log('Connected to database. Seeding synthetic student data...');
+  console.log('Connected to database.');
 
   const studentRepo = dataSource.getRepository(Student);
+
+  console.log('Clearing previously seeded synthetic students...');
+  await studentRepo.delete({ sourceDataset: 'Synthetic' });
+
+  console.log('Seeding synthetic student data...');
   const attendanceRepo = dataSource.getRepository(AttendanceRecord);
   const assessmentRepo = dataSource.getRepository(AssessmentRecord);
   const engagementRepo = dataSource.getRepository(EngagementRecord);
@@ -71,7 +86,7 @@ async function seed() {
     // Each student has an underlying "engagement tier" (low/medium/high) that
     // biases every metric together, so the cohort has realistic correlated
     // clusters of struggling/average/thriving students rather than pure noise.
-    const tier = pick(['low', 'medium', 'high'] as const);
+    const tier = pickTier();
     const tierBias = tier === 'low' ? 0 : tier === 'medium' ? 1 : 2;
 
     const student = await studentRepo.save(
@@ -88,7 +103,7 @@ async function seed() {
       randomInt(2, COURSE_CODES.length),
     )) {
       const sessionsScheduled = randomInt(10, 20);
-      const attendanceFloor = 40 + tierBias * 20;
+      const attendanceFloor = 25 + tierBias * 25;
       const sessionsAttended = Math.min(
         sessionsScheduled,
         Math.round(
@@ -115,7 +130,7 @@ async function seed() {
 
       for (let a = 0; a < randomInt(2, 4); a++) {
         const maxScore = 100;
-        const scoreFloor = 35 + tierBias * 18;
+        const scoreFloor = 20 + tierBias * 22;
         await assessmentRepo.save(
           assessmentRepo.create({
             studentId: student.id,
