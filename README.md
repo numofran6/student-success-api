@@ -71,6 +71,68 @@ Both prediction endpoints accept a `StudentFeatureVector` JSON body (see `src/an
 
 `npm run seed` populates the database with a synthetic cohort (40 students with attendance, assessment, and engagement records) — the spec allows synthetically generated data where additional testing data is required. Safe to re-run; it just adds more students each time.
 
+## Deploying (free tier: Vercel + Render + Supabase)
+
+This matches the spec's deployment plan — Vercel for the frontend, Render for
+the two backend services, Supabase for Postgres. All three have a free tier
+that's enough for this project. Render's free web services spin down after
+15 minutes of inactivity and take ~30–60s to wake back up on the next
+request — expected, not a bug.
+
+**1. Database — Supabase**
+
+1. Create a project at [supabase.com](https://supabase.com) (free tier).
+2. Project Settings → Database → copy the connection string (URI format).
+   Supabase requires SSL, which the backend already handles via
+   `DATABASE_SSL=true`.
+
+**2. Backend + analytics service — Render**
+
+The repo includes `render.yaml`, so Render can create both services in one
+step:
+
+1. [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint**
+   → connect the `numofran6/student-success-api` GitHub repo. Render reads
+   `render.yaml` and proposes two free web services: `student-success-api`
+   (Node) and `student-success-analytics` (Python).
+2. Before the first deploy finishes, open **student-success-api → Environment**
+   and fill in the vars the blueprint left blank:
+   - `DATABASE_URL` — the Supabase connection string from step 1
+   - `JWT_SECRET` — a random string (`openssl rand -hex 32`)
+   - `ANALYTICS_SERVICE_URL` — the `student-success-analytics` service's URL
+     shown in its Render dashboard page (`https://student-success-analytics-xxxx.onrender.com`)
+   - `ANALYTICS_SERVICE_API_KEY` — leave blank, it's optional
+   - `CORS_ORIGIN` — leave blank for now; come back and set this once you
+     have the Vercel URL from step 3
+3. Note the `student-success-api` service's own URL — you'll need it for
+   the frontend.
+
+**3. Frontend — Vercel**
+
+1. [vercel.com/new](https://vercel.com/new) → import the same GitHub repo.
+2. **Root Directory**: set to `frontend` (this repo has three projects in
+   one; Vercel needs to know which one to build).
+3. Add an environment variable: `API_URL` = the `student-success-api` Render
+   URL from step 2. Leave `NEXT_PUBLIC_DEMO_MODE` unset (defaults to real,
+   non-demo mode).
+4. Deploy. Note the resulting `https://your-app.vercel.app` URL.
+
+**4. Close the loop**
+
+Back in Render, set `student-success-api`'s `CORS_ORIGIN` to the Vercel URL
+from step 3 and let it redeploy — this restricts the API to your deployed
+frontend instead of allowing any origin.
+
+**5. Seed the deployed database**
+
+From your machine, temporarily point `DATABASE_URL` in your local `.env` at
+the Supabase connection string and run `npm run seed`, then switch it back
+(or just keep two `.env` files around). Alternatively, sign up through the
+deployed app and add students via the API directly — the seed script is
+just a shortcut for a realistic starting cohort.
+
+Visit the Vercel URL, sign up, and you're in.
+
 ## Scripts
 
 ```bash

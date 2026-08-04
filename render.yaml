@@ -1,0 +1,45 @@
+# Render Blueprint — deploys the two backend services from this monorepo.
+# In the Render dashboard: New > Blueprint > select this repo. Render reads
+# this file and creates both services below. The frontend deploys
+# separately to Vercel (see README.md's Deploying section).
+#
+# Env vars marked "sync: false" must be filled in manually in the Render
+# dashboard after the services are created — see the README runbook.
+services:
+  - type: web
+    name: student-success-api
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: 'true'
+      - key: DATABASE_SYNCHRONIZE
+        value: 'true'
+      - key: JWT_SECRET
+        sync: false
+      - key: ANALYTICS_SERVICE_URL
+        sync: false
+      - key: ANALYTICS_SERVICE_API_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+
+  - type: web
+    name: student-success-analytics
+    env: python3
+    plan: free
+    rootDir: analytics-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # Pinned so torch/scikit-learn/pandas resolve to the versions pinned
+      # in requirements.txt regardless of Render's current default.
+      - key: PYTHON_VERSION
+        value: 3.11.9

@@ -9,7 +9,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  app.enableCors();
+  const corsOrigin = configService.get<string>('cors.origin');
+  app.enableCors({
+    origin: corsOrigin ? corsOrigin.split(',').map((o) => o.trim()) : true,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
