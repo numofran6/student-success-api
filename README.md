@@ -1,26 +1,29 @@
 # Student Success Platform
 
-Monorepo for the AI-Powered Student Success Analytics Platform (MSc project): a NestJS backend at the repo root, and the Next.js frontend in [`frontend/`](frontend/README.md). They're two separate npm projects living in one repo — no workspaces/build-system magic, just a root script to run both together.
+Monorepo for the AI-Powered Student Success Analytics Platform (MSc project): a NestJS backend at the repo root, the Next.js frontend in [`frontend/`](frontend/README.md), and the Python risk-model service in [`analytics-service/`](analytics-service/README.md). Three separate projects living in one repo — no workspaces/build-system magic, just root scripts to run them together.
 
 ```
 .
-├── src/            NestJS backend (this README)
-├── frontend/       Next.js frontend (see frontend/README.md)
-├── .env            backend env (create from .env.example)
+├── src/                  NestJS backend (this README)
+├── frontend/             Next.js frontend (see frontend/README.md)
+├── analytics-service/    Python risk models — classical ML + deep learning (see analytics-service/README.md)
+├── .env                  backend env (create from .env.example)
 └── frontend/.env.local   frontend env (create from frontend/.env.example)
 ```
 
-## Running both together
+## Running everything together
 
 ```bash
-npm install          # backend deps (root)
-npm run install:web  # frontend deps
+npm install              # backend deps (root)
+npm run install:web       # frontend deps
+npm run install:analytics # Python venv + deps for the analytics service
 cp .env.example .env                                # fill in DATABASE_URL, pick an API_KEY
 cp frontend/.env.example frontend/.env.local         # no auth vars needed here
 docker run -d --name student-success-db \
   -e POSTGRES_PASSWORD=password -e POSTGRES_DB=student_success \
   -p 5432:5432 postgres:16-alpine               # local database — skip if using Supabase
-npm run dev           # runs backend on :4001 and frontend on :3000 concurrently
+npm run seed              # populate the database with a synthetic cohort
+npm run dev                # runs backend on :4001, frontend on :3000, analytics on :8000
 ```
 
 Open `http://localhost:3000`. The frontend's `NEXT_PUBLIC_API_URL` already defaults to `http://localhost:4001`, matching this backend's `PORT=4001` — no port juggling needed. Log in with the `API_KEY` value from `.env`.
@@ -29,7 +32,7 @@ Auth is a shared staff password (see below) — no external identity provider to
 
 Don't have a database wired up yet? Set `NEXT_PUBLIC_DEMO_MODE=true` in `frontend/.env.local` to run the UI standalone with in-memory sample data — see `frontend/README.md`.
 
-To run only one side: `npm run dev:api` or `npm run dev:web`.
+To run one piece at a time: `npm run dev:api`, `npm run dev:web`, or `npm run dev:analytics`.
 
 ## Backend modules
 
@@ -54,19 +57,28 @@ API docs (Swagger) are served at `/docs` once the server is running.
 
 ## Analytics service contract
 
-`ANALYTICS_SERVICE_URL` should point to the Python service (Pandas/Scikit-learn + TensorFlow-Keras or PyTorch) exposing:
+`ANALYTICS_SERVICE_URL` (defaults to `http://localhost:8000`) points at the Python service in `analytics-service/` — a classical ML model (logistic regression) and a deep learning model (feed-forward neural network, PyTorch), trained on synthetic data at startup and compared side by side, per the spec's model development plan. It exposes:
 
 - `POST /predict/classical` – classical ML prediction
 - `POST /predict/deep-learning` – deep learning prediction
+- `GET /metrics` – accuracy/precision/recall/F1 for both models
 
-Both accept a `StudentFeatureVector` JSON body (see `src/analytics-pipeline/analytics-pipeline.service.ts`) and return `{ riskScore, modelVersion, contributingFactors? }`.
+Both prediction endpoints accept a `StudentFeatureVector` JSON body (see `src/analytics-pipeline/analytics-pipeline.service.ts`) and return `{ riskScore, modelVersion, contributingFactors? }`. See `analytics-service/README.md` for details.
+
+## Seeding data
+
+`npm run seed` populates the database with a synthetic cohort (40 students with attendance, assessment, and engagement records) — the spec allows synthetically generated data where additional testing data is required. Safe to re-run; it just adds more students each time.
 
 ## Scripts
 
 ```bash
-npm run build       # compile
-npm run start:dev   # watch mode
-npm run test         # unit tests
-npm run test:e2e     # e2e tests
-npm run lint         # eslint --fix
+npm run build              # compile
+npm run start:dev          # watch mode
+npm run test                # unit tests
+npm run test:e2e             # e2e tests
+npm run lint                 # eslint --fix
+npm run seed                 # populate the database with synthetic students
+npm run dev                  # run backend + frontend + analytics service together
+npm run install:web          # install frontend deps
+npm run install:analytics    # create the analytics-service Python venv + deps
 ```

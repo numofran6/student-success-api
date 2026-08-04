@@ -38,3 +38,8 @@ lerna-debug.log*
 # temp
 tmp
 temp
+
+# python
+.venv
+__pycache__
+*.pyc
