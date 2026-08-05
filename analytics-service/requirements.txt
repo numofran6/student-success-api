@@ -3,4 +3,10 @@ uvicorn[standard]==0.32.1
 scikit-learn==1.5.2
 pandas==2.2.3
 numpy==2.0.2
-torch==2.5.1
+
+# CPU-only wheel. The default PyPI torch build bundles CUDA runtime libs
+# (nvidia-cublas-cu12, nvidia-cudnn-cu12, ...) that aren't used here but
+# add ~1GB+ and enough RAM overhead at import time to OOM-kill the process
+# on Render's free tier (512MB) — this wheel is a few hundred MB instead.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
