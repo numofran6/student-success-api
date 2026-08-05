@@ -81,11 +81,48 @@ export class RiskAssessmentService {
     });
   }
 
-  findAtRisk(riskLevel: RiskLevel = RiskLevel.HIGH): Promise<RiskAssessment[]> {
-    return this.riskAssessmentRepository.find({
-      where: { riskLevel },
-      relations: { student: true },
-      order: { predictedAt: 'DESC' },
-    });
+  async findAtRisk(
+    riskLevel: RiskLevel = RiskLevel.HIGH,
+  ): Promise<RiskAssessment[]> {
+    const current = await this.findCurrentPerStudent();
+    return current
+      .filter((assessment) => assessment.riskLevel === riskLevel)
+      .sort((a, b) => b.predictedAt.getTime() - a.predictedAt.getTime());
+  }
+
+  // Each assessment run stores one row per model (classical ML + deep
+  // learning), and re-running assessments piles up history. A student's
+  // "current" risk is the more severe of their two latest per-model
+  // predictions — erring toward flagging rather than missing an at-risk
+  // student one model didn't catch.
+  private async findCurrentPerStudent(): Promise<RiskAssessment[]> {
+    const latestPerStudentAndModel = await this.riskAssessmentRepository
+      .createQueryBuilder('assessment')
+      .distinctOn(['assessment.studentId', 'assessment.modelType'])
+      .leftJoinAndSelect('assessment.student', 'student')
+      .orderBy('assessment.studentId', 'ASC')
+      .addOrderBy('assessment.modelType', 'ASC')
+      .addOrderBy('assessment.predictedAt', 'DESC')
+      .getMany();
+
+    const mostSevereByStudent = new Map<string, RiskAssessment>();
+    for (const assessment of latestPerStudentAndModel) {
+      const current = mostSevereByStudent.get(assessment.studentId);
+      if (
+        !current ||
+        this.severityRank(assessment.riskLevel) >
+          this.severityRank(current.riskLevel)
+      ) {
+        mostSevereByStudent.set(assessment.studentId, assessment);
+      }
+    }
+
+    return Array.from(mostSevereByStudent.values());
+  }
+
+  private severityRank(riskLevel: RiskLevel): number {
+    return { [RiskLevel.LOW]: 1, [RiskLevel.MEDIUM]: 2, [RiskLevel.HIGH]: 3 }[
+      riskLevel
+    ];
   }
 }
