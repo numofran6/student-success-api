@@ -107,12 +107,13 @@ def train_models() -> dict:
 
     torch.manual_seed(42)
     dl_model = RiskNet(input_dim=X_train_scaled.shape[1])
-    optimizer = torch.optim.Adam(dl_model.parameters(), lr=0.01)
-    loss_fn = nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.Adam(dl_model.parameters(), lr=0.01) # Adam optimizer for training the neural network.
+    loss_fn = nn.BCEWithLogitsLoss() # Binary Cross-Entropy loss with logits for binary classification.
 
     X_train_t = torch.tensor(X_train_scaled, dtype=torch.float32)
     y_train_t = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1)
 
+    # Fixed 200 epochs, no early stopping
     dl_model.train()
     for _ in range(200):
         optimizer.zero_grad()
